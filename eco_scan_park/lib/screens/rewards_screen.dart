@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/theme.dart';
 import '../models/user_model.dart';
@@ -14,96 +14,177 @@ class RewardsScreen extends StatelessWidget {
         final user = provider.user;
         if (user == null) return const SizedBox();
 
-        return Scaffold(
-          appBar: AppBar(title: const Text('Recompensas')),
-          body: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              // Puntos actuales
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: AppColors.mintGreen,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.stars_rounded,
-                        color: AppColors.amber, size: 28),
-                    const SizedBox(width: 10),
-                    Text(
-                      '${user.totalPoints} puntos',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.darkGreen,
-                      ),
+        return Column(
+          children: [
+            // Header estilo Figma
+            Container(
+              color: AppColors.darkGreen,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 18),
+                  child: const Text(
+                    'Mis recompensas',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 24),
-              const Text(
-                'Niveles',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
+            ),
+            // Contenido
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                children: [
+                  _buildBalanceCard(user),
+                  const SizedBox(height: 24),
+                  _buildLevelsSection(context, user),
+                ],
               ),
-              const SizedBox(height: 12),
-              ...RewardLevel.levels
-                  .map((level) => _RewardLevelCard(
-                        level: level,
-                        isUnlocked: user.totalPoints >= level.pointsRequired,
-                        isCurrent: user.level == level.name,
-                      )),
-              const SizedBox(height: 24),
-              // Tabla de puntos por residuo
-              const Text(
-                'Puntos por residuo',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 12),
-              _PointsRow(
-                  icon: Icons.local_drink,
-                  label: 'Botella de plástico',
-                  points: 15,
-                  color: AppColors.binYellow),
-              _PointsRow(
-                  icon: Icons.circle,
-                  label: 'Lata de aluminio',
-                  points: 12,
-                  color: AppColors.binYellow),
-              _PointsRow(
-                  icon: Icons.inventory_2_outlined,
-                  label: 'Cartón',
-                  points: 8,
-                  color: AppColors.binYellow),
-              _PointsRow(
-                  icon: Icons.eco,
-                  label: 'Restos de comida',
-                  points: 5,
-                  color: AppColors.binGreen),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );
   }
+
+  Widget _buildBalanceCard(UserModel user) {
+    final nextLevel = RewardLevel.levels.firstWhere(
+      (l) => user.totalPoints < l.pointsRequired,
+      orElse: () => RewardLevel.levels.last,
+    );
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'SALDO DE PUNTOS',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondary,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${user.totalPoints} puntos',
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            user.totalPoints == 0
+                ? 'Empieza a reciclar y gana tus primeros puntos!'
+                : '¡Sigue reciclando para ganar más puntos!',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          // Progreso nivel actual
+          Row(
+            children: [
+              Text(
+                '${user.levelEmoji} Nivel: ',
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary),
+              ),
+              Text(
+                user.level,
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryGreen),
+              ),
+              const Spacer(),
+              Text(
+                '${user.totalPoints}/${nextLevel.pointsRequired} pts',
+                style: const TextStyle(
+                    fontSize: 11, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: user.levelProgress.clamp(0.0, 1.0),
+              backgroundColor: AppColors.divider,
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppColors.primaryGreen),
+              minHeight: 6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLevelsSection(BuildContext context, UserModel user) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Niveles de Recompensa',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pushNamed(context, '/redeem'),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+              ),
+              child: const Text(
+                'Canjear →',
+                style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.primaryGreen,
+                    fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ...RewardLevel.levels.map((level) {
+          final isUnlocked = user.totalPoints >= level.pointsRequired;
+          final isCurrent = user.level == level.name;
+          return _LevelCard(
+            level: level,
+            isUnlocked: isUnlocked,
+            isCurrent: isCurrent,
+          );
+        }),
+      ],
+    );
+  }
 }
 
-class _RewardLevelCard extends StatelessWidget {
+class _LevelCard extends StatelessWidget {
   final RewardLevel level;
   final bool isUnlocked;
   final bool isCurrent;
 
-  const _RewardLevelCard({
+  const _LevelCard({
     required this.level,
     required this.isUnlocked,
     required this.isCurrent,
@@ -115,20 +196,17 @@ class _RewardLevelCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isCurrent
-            ? AppColors.primaryGreen
-            : isUnlocked
-                ? Colors.white
-                : Colors.grey.shade100,
+        color: isCurrent ? AppColors.darkGreen : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: isCurrent
             ? null
             : Border.all(
-                color: isUnlocked ? AppColors.primaryGreen : AppColors.divider),
+                color:
+                    isUnlocked ? AppColors.primaryGreen : AppColors.divider),
       ),
       child: Row(
         children: [
-          Text(level.icon, style: const TextStyle(fontSize: 28)),
+          Text(level.icon, style: const TextStyle(fontSize: 26)),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -138,7 +216,7 @@ class _RewardLevelCard extends StatelessWidget {
                   level.name,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    fontSize: 15,
+                    fontSize: 14,
                     color: isCurrent ? Colors.white : AppColors.textPrimary,
                   ),
                 ),
@@ -147,20 +225,23 @@ class _RewardLevelCard extends StatelessWidget {
                   level.reward,
                   style: TextStyle(
                     fontSize: 12,
-                    color: isCurrent ? Colors.white70 : AppColors.textSecondary,
+                    color: isCurrent
+                        ? Colors.white70
+                        : AppColors.textSecondary,
                   ),
                 ),
               ],
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
               color: isCurrent
-                  ? Colors.white.withValues(alpha: 0.2)
+                  ? Colors.white.withValues(alpha: 0.18)
                   : isUnlocked
                       ? AppColors.mintGreen
-                      : Colors.grey.shade200,
+                      : AppColors.divider,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -174,55 +255,6 @@ class _RewardLevelCard extends StatelessWidget {
                         ? AppColors.primaryGreen
                         : AppColors.textSecondary,
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PointsRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final int points;
-  final Color color;
-
-  const _PointsRow({
-    required this.icon,
-    required this.label,
-    required this.points,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: color, size: 22),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
-          Text(
-            '+$points pts',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: AppColors.primaryGreen,
-              fontSize: 14,
             ),
           ),
         ],

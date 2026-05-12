@@ -4,11 +4,12 @@ import 'core/theme.dart';
 import 'providers/user_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_screen.dart';
 import 'screens/qr_screen.dart';
-import 'screens/rewards_screen.dart';
 import 'screens/history_screen.dart';
-import 'screens/profile_screen.dart';
+import 'screens/scan_result_screen.dart';
+import 'screens/points_won_screen.dart';
+import 'screens/redeem_screen.dart';
 
 void main() {
   runApp(
@@ -32,11 +33,12 @@ class EcoScanParkApp extends StatelessWidget {
       routes: {
         '/': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) => const MainScreen(),
         '/qr': (context) => const QrScreen(),
-        '/rewards': (context) => const RewardsScreen(),
         '/history': (context) => const HistoryScreen(),
-        '/profile': (context) => const ProfileScreen(),
+        '/scan_result': (context) => const ScanResultScreen(),
+        '/points_won': (context) => const PointsWonScreen(),
+        '/redeem': (context) => const RedeemScreen(),
       },
     );
   }

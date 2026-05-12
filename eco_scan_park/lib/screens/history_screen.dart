@@ -15,24 +15,40 @@ class HistoryScreen extends StatelessWidget {
         if (user == null) return const SizedBox();
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Historial')),
+          backgroundColor: AppColors.sageBackground,
+          appBar: AppBar(
+            title: const Text('Mi historial'),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
           body: user.history.isEmpty
               ? Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.recycling,
-                          size: 64, color: AppColors.divider),
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: AppColors.mintGreen,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.recycling,
+                            size: 40, color: AppColors.primaryGreen),
+                      ),
                       const SizedBox(height: 16),
-                      Text(
+                      const Text(
                         'Aún no has escaneado residuos',
                         style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 16,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
+                      const Text(
                         'Acércate a un kiosco EcoScanPark',
                         style: TextStyle(
                           color: AppColors.textSecondary,
@@ -46,8 +62,7 @@ class HistoryScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   itemCount: user.history.length,
                   itemBuilder: (context, index) {
-                    final record = user.history[index];
-                    return _HistoryTile(record: record);
+                    return _HistoryTile(record: user.history[index]);
                   },
                 ),
         );
@@ -58,10 +73,9 @@ class HistoryScreen extends StatelessWidget {
 
 class _HistoryTile extends StatelessWidget {
   final ScanRecord record;
-
   const _HistoryTile({required this.record});
 
-  Color get _binColor {
+  Color get _color {
     switch (record.wasteType) {
       case WasteType.recyclable:
         return AppColors.binYellow;
@@ -75,7 +89,7 @@ class _HistoryTile extends StatelessWidget {
   IconData get _icon {
     switch (record.wasteType) {
       case WasteType.recyclable:
-        return Icons.local_drink;
+        return Icons.recycling;
       case WasteType.organic:
         return Icons.eco;
       case WasteType.nonRecyclable:
@@ -87,28 +101,29 @@ class _HistoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final time =
         '${record.date.hour.toString().padLeft(2, '0')}:${record.date.minute.toString().padLeft(2, '0')}';
+    final date =
+        '${record.date.day}/${record.date.month}/${record.date.year}';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border(
-          left: BorderSide(color: _binColor, width: 4),
-        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border(left: BorderSide(color: _color, width: 4)),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: _binColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
+              color: _color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(_icon, color: _binColor, size: 22),
+            child: Icon(_icon, color: _color, size: 20),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,9 +138,9 @@ class _HistoryTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${record.wasteType.binColor} · $time',
-                  style: TextStyle(
-                    fontSize: 12,
+                  '${record.wasteType.label} · $date $time',
+                  style: const TextStyle(
+                    fontSize: 11,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -134,9 +149,9 @@ class _HistoryTile extends StatelessWidget {
           ),
           Text(
             '+${record.points}',
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 15,
               color: AppColors.primaryGreen,
             ),
           ),
@@ -145,3 +160,5 @@ class _HistoryTile extends StatelessWidget {
     );
   }
 }
+
+

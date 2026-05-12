@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
 import '../core/theme.dart';
 import '../providers/user_provider.dart';
 import '../models/user_model.dart';
@@ -15,170 +14,80 @@ class HomeScreen extends StatelessWidget {
         final user = provider.user;
         if (user == null) return const SizedBox();
 
-        return Scaffold(
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Hola, ${user.name} 👋',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${user.levelEmoji} ${user.level}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppColors.primaryGreen,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pushNamed(context, '/profile'),
-                        child: CircleAvatar(
-                          radius: 24,
-                          backgroundColor: AppColors.mintGreen,
-                          child: Text(
-                            user.name[0].toUpperCase(),
-                            style: TextStyle(
-                              color: AppColors.primaryGreen,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+        return SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(user),
+                const SizedBox(height: 18),
+                _buildPointsCard(user),
+                const SizedBox(height: 20),
+                const Text(
+                  'Acciones rápidas',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
                   ),
-                  const SizedBox(height: 28),
-
-                  // Tarjeta de puntos
-                  _buildPointsCard(user),
-                  const SizedBox(height: 20),
-
-                  // Acciones rápidas
-                  const Text(
-                    'Acciones',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _ActionCard(
-                          icon: Icons.qr_code_2,
-                          label: 'Mi QR',
-                          color: AppColors.primaryGreen,
-                          onTap: () => Navigator.pushNamed(context, '/qr'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _ActionCard(
-                          icon: Icons.emoji_events_outlined,
-                          label: 'Recompensas',
-                          color: AppColors.amber,
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/rewards'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _ActionCard(
-                          icon: Icons.history,
-                          label: 'Historial',
-                          color: AppColors.warmBrown,
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/history'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Contenedores info
-                  const Text(
-                    'Contenedores',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _BinInfoCard(
-                    color: AppColors.binYellow,
-                    title: 'Amarillo — Reciclable',
-                    items: 'Plástico, metal, cartón',
-                    icon: Icons.local_drink,
-                  ),
-                  const SizedBox(height: 10),
-                  _BinInfoCard(
-                    color: AppColors.binGreen,
-                    title: 'Verde — Orgánico',
-                    items: 'Restos de comida, cáscaras',
-                    icon: Icons.eco,
-                  ),
-                  const SizedBox(height: 10),
-                  _BinInfoCard(
-                    color: AppColors.binGray,
-                    title: 'Gris — No reciclable',
-                    items: 'Servilletas, residuos mixtos',
-                    icon: Icons.delete_outline,
-                  ),
-                  const SizedBox(height: 28),
-
-                  // Botón demo de escaneo
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        provider.simulateScan();
-                        final last = user.history.first;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: AppColors.primaryGreen,
-                            content: Text(
-                              '${last.productName} → +${last.points} pts',
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.qr_code_scanner),
-                      label: const Text('Simular escaneo'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.darkGreen,
+                ),
+                const SizedBox(height: 12),
+                _buildQuickActions(context),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Guía de Contenedores',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-              ),
+                    Text(
+                      'Aprende a reciclar',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.primaryGreen,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                const SizedBox(height: 12),
+                _BinCard(
+                  color: AppColors.binYellow,
+                  title: 'Amarillo',
+                  badge: 'Reciclable',
+                  badgeColor: Color(0xFFB07800),
+                  badgeBg: Color(0xFFFFF3CC),
+                  description:
+                      'Plástico, vidrio, metal, papel, cartón y residuos limpios',
+                ),
+                const SizedBox(height: 8),
+                _BinCard(
+                  color: AppColors.binGreen,
+                  title: 'Verde',
+                  badge: 'Orgánico',
+                  badgeColor: AppColors.primaryGreen,
+                  badgeBg: AppColors.mintGreen,
+                  description:
+                      'Restos de comida, Frutas, verduras y materia orgánica',
+                ),
+                const SizedBox(height: 8),
+                _BinCard(
+                  color: AppColors.binGray,
+                  title: 'Gris',
+                  badge: 'No reciclable',
+                  badgeColor: Color(0xFF555555),
+                  badgeBg: Color(0xFFEEEEEE),
+                  description:
+                      'Servilletas, residuos mixtos y elementos no recuperables',
+                ),
+                const SizedBox(height: 12),
+              ],
             ),
           ),
         );
@@ -186,191 +95,326 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildHeader(UserModel user) {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 22,
+          backgroundColor: AppColors.mintGreen,
+          child: Text(
+            user.name[0].toUpperCase(),
+            style: const TextStyle(
+              color: AppColors.primaryGreen,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Bienvenido de vuelta!',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+              Text(
+                user.name,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          decoration: BoxDecoration(
+            color: AppColors.mintGreen,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Text(
+            'Reporta',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.primaryGreen,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildPointsCard(UserModel user) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primaryGreen, AppColors.darkGreen],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryGreen.withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        color: AppColors.darkGreen,
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Puntos totales',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'PUNTOS ECOSCAN',
+                style: TextStyle(
+                  color: Colors.white60,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.8,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${user.totalPoints}',
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  user.level,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 42,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Siguiente nivel: ${user.nextLevelPoints} pts',
-                  style: const TextStyle(
-                    color: Colors.white60,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          CircularPercentIndicator(
-            radius: 45,
-            lineWidth: 8,
-            percent: user.levelProgress.clamp(0.0, 1.0),
-            center: Text(
-              user.levelEmoji,
-              style: const TextStyle(fontSize: 24),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${user.totalPoints}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 44,
+                  fontWeight: FontWeight.bold,
+                  height: 1,
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 6, left: 6),
+                child: Text(
+                  'pts',
+                  style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                'Nivel ${_levelNumber(user)}',
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            user.totalPoints == 0
+                ? 'Empieza a escanear y gana puntos!! →'
+                : 'Siguiente nivel: ${user.nextLevelPoints} pts →',
+            style: const TextStyle(color: Colors.white70, fontSize: 12),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Siguiente nivel: ${user.nextLevelPoints} pts',
+                style: const TextStyle(color: Colors.white54, fontSize: 11),
+              ),
+              Text(
+                '${(user.levelProgress * 100).toStringAsFixed(0)}%',
+                style: const TextStyle(color: Colors.white54, fontSize: 11),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: user.levelProgress.clamp(0.0, 1.0),
+              backgroundColor: Colors.white24,
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppColors.amber),
+              minHeight: 6,
             ),
-            progressColor: AppColors.amber,
-            backgroundColor: Colors.white24,
-            circularStrokeCap: CircularStrokeCap.round,
           ),
         ],
       ),
     );
   }
+
+  int _levelNumber(UserModel user) {
+    if (user.totalPoints >= 400) return 5;
+    if (user.totalPoints >= 250) return 4;
+    if (user.totalPoints >= 120) return 3;
+    if (user.totalPoints >= 50) return 2;
+    return 1;
+  }
+
+  Widget _buildQuickActions(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _ActionBtn(
+          icon: Icons.qr_code_2,
+          label: 'Mi QR',
+          onTap: () => Navigator.pushNamed(context, '/qr'),
+        ),
+        _ActionBtn(
+          icon: Icons.card_giftcard_outlined,
+          label: 'Recompensas',
+          onTap: () => Navigator.pushNamed(context, '/rewards'),
+        ),
+        _ActionBtn(
+          icon: Icons.history,
+          label: 'Historial',
+          onTap: () => Navigator.pushNamed(context, '/history'),
+        ),
+      ],
+    );
+  }
 }
 
-class _ActionCard extends StatelessWidget {
+class _ActionBtn extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color color;
   final VoidCallback onTap;
 
-  const _ActionCard({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
+  const _ActionBtn(
+      {required this.icon, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 26),
+            child: Icon(icon, color: AppColors.primaryGreen, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
             ),
-            const SizedBox(height: 10),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _BinInfoCard extends StatelessWidget {
+class _BinCard extends StatelessWidget {
   final Color color;
   final String title;
-  final String items;
-  final IconData icon;
+  final String badge;
+  final Color badgeColor;
+  final Color badgeBg;
+  final String description;
 
-  const _BinInfoCard({
+  const _BinCard({
     required this.color,
     required this.title,
-    required this.items,
-    required this.icon,
+    required this.badge,
+    required this.badgeColor,
+    required this.badgeBg,
+    required this.description,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border(
-          left: BorderSide(color: color, width: 4),
-        ),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 22),
+            width: 11,
+            height: 11,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: AppColors.textPrimary,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: badgeBg,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        badge,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: badgeColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
-                  items,
-                  style: TextStyle(
-                    fontSize: 12,
+                  description,
+                  style: const TextStyle(
+                    fontSize: 11,
                     color: AppColors.textSecondary,
                   ),
                 ),
               ],
             ),
           ),
+          const Icon(Icons.chevron_right, color: Color(0xFFCCCCCC), size: 18),
         ],
       ),
     );
   }
 }
+
+

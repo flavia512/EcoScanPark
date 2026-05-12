@@ -15,23 +15,31 @@ class QrScreen extends StatelessWidget {
         if (user == null) return const SizedBox();
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Mi código QR')),
+          backgroundColor: AppColors.sageBackground,
+          appBar: AppBar(
+            title: const Text('Mi código QR'),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
           body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(28),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // QR Card
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(28),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
+                          color: Colors.black.withValues(alpha: 0.06),
                           blurRadius: 20,
-                          offset: const Offset(0, 8),
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
@@ -50,7 +58,7 @@ class QrScreen extends StatelessWidget {
                             color: AppColors.primaryGreen,
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
                         Text(
                           user.name,
                           style: const TextStyle(
@@ -61,8 +69,8 @@ class QrScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'ID: ${user.id}',
-                          style: TextStyle(
+                          'ID: ${user.id.substring(0, 10)}...',
+                          style: const TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,
                           ),
@@ -70,24 +78,22 @@ class QrScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
+                  // Hint
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: AppColors.mintGreen,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: AppColors.primaryGreen,
-                          size: 20,
-                        ),
+                        const Icon(Icons.info_outline,
+                            color: AppColors.primaryGreen, size: 20),
                         const SizedBox(width: 12),
-                        Expanded(
+                        const Expanded(
                           child: Text(
-                            'Muestra este código en la pantalla del kiosco para iniciar sesión.',
+                            'Muestra este código a los rangers para ganar puntos extras.',
                             style: TextStyle(
                               fontSize: 13,
                               color: AppColors.darkGreen,
