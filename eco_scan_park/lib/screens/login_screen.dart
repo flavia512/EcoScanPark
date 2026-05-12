@@ -16,6 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isRegister = false;
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -25,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     final name = _isRegister
         ? _nameController.text.trim()
         : _emailController.text.trim().split('@').first;
@@ -50,11 +51,41 @@ class _LoginScreenState extends State<LoginScreen> {
             ? _nameController.text.trim()
             : name;
 
+    if (_isRegister && displayName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Ingresa tu nombre'),
+          backgroundColor: AppColors.primaryGreen,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
     final provider = context.read<UserProvider>();
+    String? errorMsg;
+
     if (_isRegister) {
-      provider.register(displayName, email);
+      errorMsg = await provider.register(displayName, email, password);
     } else {
-      provider.login(displayName, email);
+      errorMsg = await provider.login(email, password);
+    }
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (errorMsg != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      return;
     }
     Navigator.pushReplacementNamed(context, '/home');
   }
@@ -154,8 +185,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Botón principal
               ElevatedButton(
-                onPressed: _submit,
-                child: Text(_isRegister ? 'Registrarse' : 'Iniciar sesión'),
+                onPressed: _isLoading ? null : _submit,
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(_isRegister ? 'Registrarse' : 'Iniciar sesión'),
               ),
               const SizedBox(height: 16),
 

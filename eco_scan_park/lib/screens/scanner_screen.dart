@@ -34,15 +34,61 @@ class _ScannerScreenState extends State<ScannerScreen>
     super.dispose();
   }
 
+  // Barcodes reales de la base de datos (simulación de cámara)
+  static const _demoBarcodes = [
+    '7501031311309', // Botella de Agua PET      – 15 pts
+    '6111244040396', // Lata de Refresco         – 20 pts
+    '8410076486250', // Caja de Cartón           – 12 pts
+    '4006381333931', // Periódico / Papel        – 8 pts
+    '5449000000996', // Botella de Vidrio        – 18 pts
+    '0012000001086', // Envase Plástico HDPE     – 13 pts
+    'ORG-001',       // Restos de Fruta          – 10 pts
+    'ORG-002',       // Cáscara de Huevo         – 10 pts
+    'ORG-003',       // Restos de Comida         – 8 pts
+    'NR-001',        // Bolsa Plástica Sucia     – 5 pts
+    'NR-002',        // Unicel / Poliestireno    – 5 pts
+  ];
+
   Future<void> _simulateScan() async {
     setState(() => _isScanning = true);
+    // Simula el tiempo de detección de la cámara
     await Future.delayed(const Duration(milliseconds: 1800));
     if (!mounted) return;
+
+    // Elige un barcode aleatorio
+    final barcode =
+        _demoBarcodes[DateTime.now().millisecond % _demoBarcodes.length];
+
     final provider = context.read<UserProvider>();
-    provider.simulateScan();
-    final record = provider.lastScan;
+    final error = await provider.submitScan(barcode);
+
     setState(() => _isScanning = false);
-    if (record != null && mounted) {
+
+    if (!mounted) return;
+
+    if (error != null) {
+      // API falló → usar simulación local para que el escaneo siempre funcione
+      provider.simulateScan();
+      if (!mounted) return;
+      final record = provider.lastScan;
+      if (record != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Modo demo: escaneo registrado localmente'),
+            backgroundColor: AppColors.primaryGreen,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        Navigator.pushNamed(context, '/scan_result', arguments: record);
+      }
+      return;
+    }
+
+    final record = provider.lastScan;
+    if (record != null) {
       Navigator.pushNamed(context, '/scan_result', arguments: record);
     }
   }

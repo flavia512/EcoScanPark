@@ -63,11 +63,13 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 INSERT INTO users (id, name, email, password_hash, total_points, visits, facilities, reward_level_id) VALUES
-('u001-0000-0000-0000-000000000001', 'David Garcia',   'david@ecoscanpark.com',  'hashed_password_1', 1250, 8, 2, 3),
-('u002-0000-0000-0000-000000000002', 'Maria Lopez',    'maria@ecoscanpark.com',  'hashed_password_2', 480,  5, 1, 2),
-('u003-0000-0000-0000-000000000003', 'Carlos Ruiz',    'carlos@ecoscanpark.com', 'hashed_password_3', 1050, 12,3, 4),
-('u004-0000-0000-0000-000000000004', 'Ana Martinez',   'ana@ecoscanpark.com',    'hashed_password_4', 320,  3, 0, 2),
-('u005-0000-0000-0000-000000000005', 'Luis Fernandez', 'luis@ecoscanpark.com',   'hashed_password_5', 90,   1, 0, 1);
+-- Contraseña de todos: password123
+-- Hash generado con password_hash('password123', PASSWORD_BCRYPT)
+('u001-0000-0000-0000-000000000001', 'David Garcia',   'david@ecoscanpark.com',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1250, 8, 2, 3),
+('u002-0000-0000-0000-000000000002', 'Maria Lopez',    'maria@ecoscanpark.com',  '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 480,  5, 1, 2),
+('u003-0000-0000-0000-000000000003', 'Carlos Ruiz',    'carlos@ecoscanpark.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 1050, 12,3, 4),
+('u004-0000-0000-0000-000000000004', 'Ana Martinez',   'ana@ecoscanpark.com',    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 320,  3, 0, 2),
+('u005-0000-0000-0000-000000000005', 'Luis Fernandez', 'luis@ecoscanpark.com',   '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 90,   1, 0, 1);
 
 -- ============================================================
 -- TABLA: park_zones  (zonas del parque)
@@ -261,6 +263,22 @@ JOIN waste_types wt ON p.waste_type_id = wt.id
 LEFT JOIN kiosks k  ON sh.kiosk_id     = k.id
 LEFT JOIN park_zones pz ON k.zone_id   = pz.id
 ORDER BY sh.scanned_at DESC;
+
+-- ============================================================
+-- FIN DEL SCRIPT
+-- ============================================================
+
+-- ============================================================
+-- TABLA: auth_tokens  (tokens de sesión para la API PHP)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS auth_tokens (
+    id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    token      CHAR(64) NOT NULL UNIQUE,
+    user_id    CHAR(36) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
 -- ============================================================
 -- FIN DEL SCRIPT

@@ -165,10 +165,17 @@ class ProfileScreen extends StatelessWidget {
                   _ProfileOption(
                     icon: Icons.emoji_events_outlined,
                     label: 'Mis recompensas',
-                    subtitle: user.redeemedRewards.isEmpty
-                        ? 'No hay canjes aún'
-                        : '${user.redeemedRewards.length} canje(s) realizados',
+                    subtitle: 'Niveles y beneficios',
                     onTap: () => Navigator.pushNamed(context, '/rewards'),
+                  ),
+                  _ProfileOption(
+                    icon: Icons.confirmation_number_outlined,
+                    label: 'Mis canjes',
+                    subtitle: user.redeemedRewards.isEmpty
+                        ? 'No has canjeado nada aún'
+                        : '${user.redeemedRewards.length} canje(s) realizados',
+                    onTap: () =>
+                        Navigator.pushNamed(context, '/my_redemptions'),
                   ),
                   _ProfileOption(
                     icon: Icons.history,

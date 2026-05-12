@@ -130,21 +130,6 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-          decoration: BoxDecoration(
-            color: AppColors.mintGreen,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Text(
-            'Reporta',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.primaryGreen,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -410,11 +395,10 @@ class _BinCard extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, color: Color(0xFFCCCCCC), size: 18),
         ],
       ),
     );
   }
 }
 
-
+

@@ -10,6 +10,8 @@ import 'screens/history_screen.dart';
 import 'screens/scan_result_screen.dart';
 import 'screens/points_won_screen.dart';
 import 'screens/redeem_screen.dart';
+import 'screens/rewards_screen.dart';
+import 'screens/my_redemptions_screen.dart';
 
 void main() {
   runApp(
@@ -39,6 +41,11 @@ class EcoScanParkApp extends StatelessWidget {
         '/scan_result': (context) => const ScanResultScreen(),
         '/points_won': (context) => const PointsWonScreen(),
         '/redeem': (context) => const RedeemScreen(),
+        '/rewards': (context) => Scaffold(
+          backgroundColor: AppColors.sageBackground,
+          body: const RewardsScreen(),
+        ),
+        '/my_redemptions': (context) => const MyRedemptionsScreen(),
       },
     );
   }
