@@ -1,7 +1,17 @@
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 import '../core/theme.dart';
 import '../providers/user_provider.dart';
+
+// Soporta cámara en web, Android e iOS. Simulación solo en escritorio nativo.
+bool get _supportsCamera {
+  if (kIsWeb) return true;
+  return defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS;
+}
 
 class ScannerScreen extends StatefulWidget {
   const ScannerScreen({super.key});
@@ -12,7 +22,9 @@ class ScannerScreen extends StatefulWidget {
 
 class _ScannerScreenState extends State<ScannerScreen>
     with SingleTickerProviderStateMixin {
-  bool _isScanning = false;
+  bool _isProcessing = false;
+  bool _torchOn = false;
+  MobileScannerController? _cameraController;
   late AnimationController _lineController;
   late Animation<double> _lineAnim;
 
@@ -26,48 +38,36 @@ class _ScannerScreenState extends State<ScannerScreen>
     _lineAnim = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _lineController, curve: Curves.easeInOut),
     );
+
+    if (_supportsCamera) {
+      _cameraController = MobileScannerController(
+        detectionSpeed: DetectionSpeed.noDuplicates,
+        facing: CameraFacing.back,
+        torchEnabled: false,
+      );
+    }
   }
 
   @override
   void dispose() {
     _lineController.dispose();
+    _cameraController?.dispose();
     super.dispose();
   }
 
-  // Barcodes reales de la base de datos (simulación de cámara)
-  static const _demoBarcodes = [
-    '7501031311309', // Botella de Agua PET      – 15 pts
-    '6111244040396', // Lata de Refresco         – 20 pts
-    '8410076486250', // Caja de Cartón           – 12 pts
-    '4006381333931', // Periódico / Papel        – 8 pts
-    '5449000000996', // Botella de Vidrio        – 18 pts
-    '0012000001086', // Envase Plástico HDPE     – 13 pts
-    'ORG-001',       // Restos de Fruta          – 10 pts
-    'ORG-002',       // Cáscara de Huevo         – 10 pts
-    'ORG-003',       // Restos de Comida         – 8 pts
-    'NR-001',        // Bolsa Plástica Sucia     – 5 pts
-    'NR-002',        // Unicel / Poliestireno    – 5 pts
-  ];
-
-  Future<void> _simulateScan() async {
-    setState(() => _isScanning = true);
-    // Simula el tiempo de detección de la cámara
-    await Future.delayed(const Duration(milliseconds: 1800));
-    if (!mounted) return;
-
-    // Elige un barcode aleatorio
-    final barcode =
-        _demoBarcodes[DateTime.now().millisecond % _demoBarcodes.length];
+  // ── Procesamiento del barcode detectado ──────────────────
+  Future<void> _onBarcodeDetected(String barcode) async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+    _cameraController?.stop();
 
     final provider = context.read<UserProvider>();
     final error = await provider.submitScan(barcode);
 
-    setState(() => _isScanning = false);
-
     if (!mounted) return;
+    setState(() => _isProcessing = false);
 
     if (error != null) {
-      // API falló → usar simulación local para que el escaneo siempre funcione
       provider.simulateScan();
       if (!mounted) return;
       final record = provider.lastScan;
@@ -93,6 +93,24 @@ class _ScannerScreenState extends State<ScannerScreen>
     }
   }
 
+  // ── Demo barcodes (solo Windows/Web) ─────────────────────
+  static const _demoBarcodes = [
+    '7501031311309', '6111244040396', '8410076486250',
+    '4006381333931', '5449000000996', '0012000001086',
+    'ORG-001', 'ORG-002', 'ORG-003', 'NR-001', 'NR-002',
+  ];
+
+  Future<void> _simulateScan() async {
+    final barcode =
+        _demoBarcodes[DateTime.now().millisecond % _demoBarcodes.length];
+    await _onBarcodeDetected(barcode);
+  }
+
+  void _toggleTorch() {
+    _cameraController?.toggleTorch();
+    setState(() => _torchOn = !_torchOn);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -100,27 +118,44 @@ class _ScannerScreenState extends State<ScannerScreen>
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Fondo degradado simulando cámara
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF0D1A0D), Color(0xFF1A2E1A), Color(0xFF0D1A0D)],
+          // ── Fondo: cámara real o gradiente simulado ──────
+          if (_supportsCamera && _cameraController != null)
+            MobileScanner(
+              controller: _cameraController!,
+              onDetect: (capture) {
+                final barcode = capture.barcodes.firstOrNull?.rawValue;
+                if (barcode != null && barcode.isNotEmpty) {
+                  _onBarcodeDetected(barcode);
+                }
+              },
+            )
+          else
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF0D1A0D),
+                    Color(0xFF1A2E1A),
+                    Color(0xFF0D1A0D)
+                  ],
+                ),
               ),
             ),
-          ),
 
+          // ── UI superpuesta ────────────────────────────────
           SafeArea(
             child: Column(
               children: [
                 // Header
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 14),
                   child: Row(
                     children: [
-                      const Icon(Icons.eco, color: AppColors.lightGreen, size: 20),
+                      const Icon(Icons.eco,
+                          color: AppColors.lightGreen, size: 20),
                       const SizedBox(width: 8),
                       const Text(
                         'ECOSCANPARK',
@@ -146,10 +181,11 @@ class _ScannerScreenState extends State<ScannerScreen>
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  _isScanning
+                  _isProcessing
                       ? 'Procesando escaneo...'
                       : 'Centra el producto en el recuadro',
-                  style: const TextStyle(color: Colors.white60, fontSize: 13),
+                  style:
+                      const TextStyle(color: Colors.white60, fontSize: 13),
                 ),
 
                 const Spacer(),
@@ -158,35 +194,38 @@ class _ScannerScreenState extends State<ScannerScreen>
                 Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Marco exterior semitransparente
                     Container(
                       width: 260,
                       height: 260,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color: _isScanning
+                          color: _isProcessing
                               ? AppColors.amber
                               : AppColors.lightGreen,
                           width: 2.5,
                         ),
-                        color: Colors.white.withValues(alpha: 0.04),
+                        color: _supportsCamera
+                            ? Colors.transparent
+                            : Colors.white.withValues(alpha: 0.04),
                       ),
-                      child: _isScanning
+                      child: _isProcessing
                           ? const Center(
                               child: CircularProgressIndicator(
                                 color: AppColors.amber,
                                 strokeWidth: 3,
                               ),
                             )
-                          : const Icon(
-                              Icons.qr_code_2,
-                              size: 90,
-                              color: Color(0x33FFFFFF),
-                            ),
+                          : _supportsCamera
+                              ? null
+                              : const Icon(
+                                  Icons.qr_code_2,
+                                  size: 90,
+                                  color: Color(0x33FFFFFF),
+                                ),
                     ),
-                    // Línea de escaneo animada
-                    if (!_isScanning)
+                    // Línea animada (solo cuando no procesa)
+                    if (!_isProcessing)
                       AnimatedBuilder(
                         animation: _lineAnim,
                         builder: (context, _) {
@@ -196,7 +235,8 @@ class _ScannerScreenState extends State<ScannerScreen>
                             right: 0,
                             child: Container(
                               height: 2,
-                              margin: const EdgeInsets.symmetric(horizontal: 10),
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: 10),
                               decoration: BoxDecoration(
                                 color: AppColors.lightGreen,
                                 boxShadow: [
@@ -211,7 +251,6 @@ class _ScannerScreenState extends State<ScannerScreen>
                           );
                         },
                       ),
-                    // Esquinas del marco
                     ...['tl', 'tr', 'bl', 'br'].map((pos) => _Corner(pos)),
                   ],
                 ),
@@ -225,17 +264,25 @@ class _ScannerScreenState extends State<ScannerScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _ControlBtn(
-                          icon: Icons.flash_on_outlined,
-                          label: 'Flash',
-                          onTap: () {}),
+                        icon: _torchOn
+                            ? Icons.flash_on
+                            : Icons.flash_off_outlined,
+                        label: 'Flash',
+                        onTap: _supportsCamera ? _toggleTorch : () {},
+                      ),
+                      // Botón central: en móvil confirma / en desktop dispara simulación
                       GestureDetector(
-                        onTap: _isScanning ? null : _simulateScan,
+                        onTap: _isProcessing
+                            ? null
+                            : (_supportsCamera
+                                ? null // en móvil la cámara detecta sola
+                                : _simulateScan),
                         child: Container(
                           width: 72,
                           height: 72,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: _isScanning
+                            color: _isProcessing
                                 ? Colors.grey.shade700
                                 : AppColors.primaryGreen,
                             boxShadow: [
@@ -255,9 +302,13 @@ class _ScannerScreenState extends State<ScannerScreen>
                         ),
                       ),
                       _ControlBtn(
-                          icon: Icons.close,
-                          label: 'Cancelar',
-                          onTap: () {}),
+                        icon: Icons.close,
+                        label: 'Cancelar',
+                        onTap: () {
+                          _cameraController?.stop();
+                          Navigator.pop(context);
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -278,7 +329,6 @@ class _Corner extends StatelessWidget {
   Widget build(BuildContext context) {
     const cornerSize = 22.0;
     const offset = 0.0;
-
     final isTop = position.startsWith('t');
     final isLeft = position.endsWith('l');
 
@@ -314,16 +364,8 @@ class _CornerPainter extends CustomPainter {
     final x = isLeft ? 0.0 : size.width;
     final y = isTop ? 0.0 : size.height;
 
-    canvas.drawLine(
-      Offset(x, y),
-      Offset(isLeft ? size.width : 0, y),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(x, y),
-      Offset(x, isTop ? size.height : 0),
-      paint,
-    );
+    canvas.drawLine(Offset(x, y), Offset(isLeft ? size.width : 0, y), paint);
+    canvas.drawLine(Offset(x, y), Offset(x, isTop ? size.height : 0), paint);
   }
 
   @override
@@ -362,3 +404,5 @@ class _ControlBtn extends StatelessWidget {
     );
   }
 }
+
+

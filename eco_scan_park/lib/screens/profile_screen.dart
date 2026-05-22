@@ -189,6 +189,18 @@ class ProfileScreen extends StatelessWidget {
                     subtitle: 'Comparte o accede con tu código',
                     onTap: () => Navigator.pushNamed(context, '/qr'),
                   ),
+                  _ProfileOption(
+                    icon: Icons.info_outline,
+                    label: 'Cómo funciona',
+                    subtitle: 'Guía completa de la app',
+                    onTap: () => Navigator.pushNamed(context, '/how_it_works'),
+                  ),
+                  _ProfileOption(
+                    icon: Icons.science_outlined,
+                    label: 'Códigos de prueba',
+                    subtitle: 'QRs para testear el escáner',
+                    onTap: () => Navigator.pushNamed(context, '/test_codes'),
+                  ),
 
                   const SizedBox(height: 28),
                   Center(

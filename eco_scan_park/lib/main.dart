@@ -12,6 +12,8 @@ import 'screens/points_won_screen.dart';
 import 'screens/redeem_screen.dart';
 import 'screens/rewards_screen.dart';
 import 'screens/my_redemptions_screen.dart';
+import 'screens/test_codes_screen.dart';
+import 'screens/how_it_works_screen.dart';
 
 void main() {
   runApp(
@@ -46,6 +48,8 @@ class EcoScanParkApp extends StatelessWidget {
           body: const RewardsScreen(),
         ),
         '/my_redemptions': (context) => const MyRedemptionsScreen(),
+        '/test_codes': (context) => const TestCodesScreen(),
+        '/how_it_works': (context) => const HowItWorksScreen(),
       },
     );
   }
