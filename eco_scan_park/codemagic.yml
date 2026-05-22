@@ -1,0 +1,14 @@
+workflows:
+  flutter-ios:
+    name: Flutter iOS Debug
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Build iOS debug
+        script: flutter build ios --debug --no-codesign
+    artifacts:
+      - build/ios/iphonesimulator/**/*.app
