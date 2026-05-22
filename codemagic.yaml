@@ -8,7 +8,13 @@ workflows:
     scripts:
       - name: Get Flutter packages
         script: cd eco_scan_park && flutter pub get
-      - name: Build iOS debug
-        script: cd eco_scan_park && flutter build ios --debug --no-codesign
+      - name: Build iOS for real device
+        script: |
+          cd eco_scan_park
+          flutter build ios --debug --no-codesign
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          cp -r Runner.app Payload/Runner.app
+          zip -r app.ipa Payload
     artifacts:
-      - eco_scan_park/build/ios/iphonesimulator/**/*.app
+      - eco_scan_park/build/ios/iphoneos/app.ipa
