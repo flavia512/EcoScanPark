@@ -7,8 +7,8 @@ workflows:
       xcode: latest
     scripts:
       - name: Get Flutter packages
-        script: flutter pub get
+        script: cd eco_scan_park && flutter pub get
       - name: Build iOS debug
-        script: flutter build ios --debug --no-codesign
+        script: cd eco_scan_park && flutter build ios --debug --no-codesign
     artifacts:
-      - build/ios/iphonesimulator/**/*.app
+      - eco_scan_park/build/ios/iphonesimulator/**/*.app
