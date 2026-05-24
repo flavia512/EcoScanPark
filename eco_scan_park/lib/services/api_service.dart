@@ -19,7 +19,7 @@ class ApiService {
     if (kIsWeb) return 'http://localhost/api_php/api';
     if (Platform.isAndroid) return 'http://10.0.2.2/api_php/api';
     // Windows, Linux, macOS, iOS, dispositivo físico
-    return 'https://d6b8-79-146-132-15.ngrok-free.app/api_php/api';
+    return 'http://localhost/api_php/api';
   }
 
   static const String _tokenKey = 'auth_token';
