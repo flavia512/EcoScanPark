@@ -59,13 +59,12 @@ class _ScannerScreenState extends State<ScannerScreen>
   Future<void> _onBarcodeDetected(String barcode) async {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
-    _cameraController?.stop();
 
+    // ignore: use_build_context_synchronously
     final provider = context.read<UserProvider>();
     final error = await provider.submitScan(barcode);
 
     if (!mounted) return;
-    setState(() => _isProcessing = false);
 
     if (error != null) {
       provider.simulateScan();
@@ -82,15 +81,17 @@ class _ScannerScreenState extends State<ScannerScreen>
             duration: const Duration(seconds: 2),
           ),
         );
-        Navigator.pushNamed(context, '/scan_result', arguments: record);
+        await Navigator.pushNamed(context, '/scan_result', arguments: record);
       }
+      if (mounted) setState(() => _isProcessing = false);
       return;
     }
 
     final record = provider.lastScan;
     if (record != null) {
-      Navigator.pushNamed(context, '/scan_result', arguments: record);
+      await Navigator.pushNamed(context, '/scan_result', arguments: record);
     }
+    if (mounted) setState(() => _isProcessing = false);
   }
 
   // ── Demo barcodes (solo Windows/Web) ─────────────────────

@@ -15,20 +15,33 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _tabs = const [
-    HomeScreen(),
-    ScannerScreen(),
-    RewardsScreen(),
-    ProfileScreen(),
-  ];
+  // Índice para los tabs NO-scanner en su propio IndexedStack
+  // tab 0=Home(0), tab 2=Recompensas(1), tab 3=Perfil(2)
+  int get _nonScannerIndex {
+    if (_selectedIndex == 2) return 1;
+    if (_selectedIndex == 3) return 2;
+    return 0;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.sageBackground,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _tabs,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Home, Recompensas y Perfil: persisten en IndexedStack
+          Offstage(
+            offstage: _selectedIndex == 1,
+            child: IndexedStack(
+              index: _nonScannerIndex,
+              children: const [HomeScreen(), RewardsScreen(), ProfileScreen()],
+            ),
+          ),
+          // Scanner: solo existe cuando el tab está activo
+          // → se crea al entrar (cámara ON) y se destruye al salir (cámara OFF)
+          if (_selectedIndex == 1) const ScannerScreen(),
+        ],
       ),
       bottomNavigationBar: _buildBottomNav(),
     );
