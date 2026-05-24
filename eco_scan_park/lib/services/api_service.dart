@@ -18,8 +18,8 @@ class ApiService {
   static String get baseUrl {
     if (kIsWeb) return 'http://localhost/api_php/api';
     if (Platform.isAndroid) return 'http://10.0.2.2/api_php/api';
-    // Windows, Linux, macOS, iOS simulator
-    return 'http://localhost/api_php/api';
+    // Windows, Linux, macOS, iOS, dispositivo físico
+    return 'http://192.168.1.40/api_php/api';
   }
 
   static const String _tokenKey = 'auth_token';
